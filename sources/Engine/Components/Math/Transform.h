@@ -45,11 +45,16 @@ public:
 	void lookAt(float x, float y, float z);
 	void lookAt(const vector3& target);
 
-	matrix4 getTransformationMatrix() const;
+	matrix4 getTransformationMatrix();
+	bool needUpdateTransformationMatrix() const;
 protected:
 	vector3 m_position;
 	vector3 m_scale;
 	quaternion m_orientation;
-
+	
 	bool m_fixedYAxis;
+
+	matrix4 m_transformationMatrix;
+
+	bool m_needTransformUpdate;
 };

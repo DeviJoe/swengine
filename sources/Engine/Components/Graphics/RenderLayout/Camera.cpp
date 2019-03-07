@@ -1,7 +1,8 @@
 #include "Camera.h"
 
 Camera::Camera() 
-	: m_transform(new Transform())
+	: m_transform(new Transform()),
+	m_needProjectionUpdate(true)
 {
 	
 }
@@ -15,6 +16,7 @@ Transform* Camera::getTransform() const {
 }
 
 void Camera::setAspectRatio(float32 aspectRatio) {
+	m_needProjectionUpdate = true;
 	m_aspectRatio = aspectRatio;
 }
 
@@ -23,6 +25,7 @@ float32 Camera::getAspectRatio() const {
 }
 
 void Camera::setNearClipDistance(float32 distance) {
+	m_needProjectionUpdate = true;
 	m_nearClipDistance = distance;
 }
 
@@ -31,6 +34,7 @@ float32 Camera::getNearClipDistance() const {
 }
 
 void Camera::setFarClipDistance(float32 distance) {
+	m_needProjectionUpdate = true;
 	m_farClipDistance = distance;
 }
 
@@ -39,6 +43,7 @@ float32 Camera::getFarClipDistance() const {
 }
 
 void Camera::setFOVy(float32 FOVy) {
+	m_needProjectionUpdate = true;
 	m_FOVy = glm::radians(FOVy);
 }
 
@@ -46,8 +51,13 @@ float32 Camera::getFOVy() const {
 	return glm::degrees(m_FOVy);
 }
 
-matrix4 Camera::getProjectionMatrix() const {
-	return glm::perspective(m_FOVy, m_aspectRatio, m_nearClipDistance, m_farClipDistance);
+matrix4 Camera::getProjectionMatrix()  {
+	if (m_needProjectionUpdate) {
+		m_projectionMatrix = glm::perspective(m_FOVy, m_aspectRatio, m_nearClipDistance, m_farClipDistance);
+		m_needProjectionUpdate = false;
+	}
+
+	return m_projectionMatrix;
 }
 
 matrix4 Camera::getViewMatrix() const

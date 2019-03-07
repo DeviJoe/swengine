@@ -4,28 +4,33 @@ Transform::Transform()
 	: m_scale(1.0f, 1.0f, 1.0f),
 	m_fixedYAxis(false),
 	m_orientation(quaternion()),
-	m_position(0.0f, 0.0f, 0.0f)
+	m_position(0.0f, 0.0f, 0.0f),
+	m_needTransformUpdate(true)
 {
 
 }
 
 void Transform::move(float x, float y, float z)
 {
+	m_needTransformUpdate = true;
 	move(vector3(x, y, z));
 }
 
 void Transform::move(vector3 movement)
 {
+	m_needTransformUpdate = true;
 	m_position += movement;
 }
 
 void Transform::setPosition(float x, float y, float z)
 {
+	m_needTransformUpdate = true;
 	setPosition(vector3(x, y, z));
 }
 
 void Transform::setPosition(const vector3& position)
 {
+	m_needTransformUpdate = true;
 	m_position = position;
 }
 
@@ -36,21 +41,25 @@ vector3 Transform::getPosition() const
 
 void Transform::scale(float x, float y, float z)
 {
+	m_needTransformUpdate = true;
 	scale(vector3(x, y, z));
 }
 
 void Transform::scale(const vector3& scale)
-{
+{ 
+	m_needTransformUpdate = true;
 	m_scale *= scale;
 }
 
 void Transform::setScale(float x, float y, float z)
 {
+	m_needTransformUpdate = true;
 	setScale(vector3(x, y, z));
 }
 
 void Transform::setScale(const vector3& scale)
 {
+	m_needTransformUpdate = true;
 	m_scale = scale;
 }
 
@@ -61,17 +70,20 @@ vector3 Transform::getScale() const
 
 void Transform::rotate(float x, float y, float z, float angle)
 {
+	m_needTransformUpdate = true;
 	rotate(vector3(x, y, z), angle);
 }
 
 void Transform::rotate(const vector3& axis, float angle)
 {
+	m_needTransformUpdate = true;
 	m_orientation *= glm::angleAxis(glm::radians(angle), axis);
 	m_orientation = glm::normalize(m_orientation);
 }
 
 void Transform::setOrientation(const quaternion& orientation)
 {
+	m_needTransformUpdate = true;
 	m_orientation = orientation;
 }
 
@@ -94,6 +106,7 @@ vector3 Transform::getUpDirection() const {
 
 void Transform::fixYAxis(bool fixed)
 {
+	m_needTransformUpdate = true;
 	m_fixedYAxis = fixed;
 }
 
@@ -111,16 +124,19 @@ void Transform::yaw(float angle)
 		m_orientation *= glm::quat(vector3(0.0, glm::radians(angle), 0.0));
 	}
 
+	m_needTransformUpdate = true;
 	m_orientation = glm::normalize(m_orientation);
 }
 
 void Transform::pitch(float angle)
 {
+	m_needTransformUpdate = true;
 	rotate(vector3(1.0f, 0.0f, 0.0f), angle);
 }
 
 void Transform::roll(float angle)
 {
+	m_needTransformUpdate = true;
 	rotate(vector3(0.0f, 0.0f, 1.0f), angle);
 }
 
@@ -138,6 +154,7 @@ float Transform::getRollValue() const {
 
 void Transform::lookAt(float x, float y, float z)
 {
+	m_needTransformUpdate = true;
 	lookAt(vector3(x, y, z));
 }
 
@@ -148,12 +165,22 @@ void Transform::lookAt(const vector3& target)
 	m[0] = glm::normalize(glm::cross(vector3(0.0f, 1.0f, 0.0f), m[2]));
 	m[1] = glm::cross(m[2], m[0]);
 
+	m_needTransformUpdate = true;
 	m_orientation = quat_cast(m);
 }
 
-matrix4 Transform::getTransformationMatrix() const
+matrix4 Transform::getTransformationMatrix()
 {
-	vector3 position(10, 20, 30);
+	if (m_needTransformUpdate == true) 
+	{
+		m_transformationMatrix = glm::translate(matrix4(), m_position) * glm::toMat4(m_orientation) * glm::scale(matrix4(), m_scale);
+		m_needTransformUpdate = false;
+	} 
 
-	return glm::translate(matrix4(), m_position) * glm::toMat4(m_orientation) * glm::scale(matrix4(), m_scale);
+	return m_transformationMatrix;
+}
+
+bool Transform::needUpdateTransformationMatrix() const
+{
+	return m_needTransformUpdate;
 }

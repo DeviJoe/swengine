@@ -22,7 +22,7 @@ public:
 	void setFOVy(float32);
 	float32 getFOVy() const;
 
-	matrix4 getProjectionMatrix() const;
+	matrix4 getProjectionMatrix();
 	matrix4 getViewMatrix() const;
 private:
 	// View space transform
@@ -33,4 +33,8 @@ private:
 	float32 m_aspectRatio;
 	float32 m_nearClipDistance;
 	float32 m_farClipDistance;
+
+	bool m_needProjectionUpdate;
+	matrix4 m_projectionMatrix;
+
 };
